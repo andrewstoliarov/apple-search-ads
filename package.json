@@ -1,0 +1,31 @@
+{
+  "name": "applesearchads",
+  "version": "1.0.0",
+  "description": "Apple search ads api client.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andrewstoliarov/AppleSearchAds.git"
+  },
+  "keywords": [
+    "apple",
+    "ads",
+    "applesearchads",
+    "client"
+  ],
+  "author": "Andrew Stoliarov",
+  "license": "CC-BY-4.0",
+  "bugs": {
+    "url": "https://github.com/andrewstoliarov/AppleSearchAds/issues"
+  },
+  "homepage": "https://github.com/andrewstoliarov/AppleSearchAds#readme",
+  "dependencies": {
+    "async": "^3.2.0",
+    "request-promise-native": "^1.0.9",
+    "underscore": "^1.12.1",
+    "request": "^2.88.2"
+  }
+}
