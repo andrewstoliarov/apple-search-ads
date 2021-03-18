@@ -2,7 +2,7 @@
   "name": "applesearchads",
   "version": "1.0.0",
   "description": "Apple search ads api client.",
-  "main": "index.js",
+  "main": "src/appleSearchAds.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
