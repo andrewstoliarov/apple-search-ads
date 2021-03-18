@@ -12,7 +12,7 @@ const testGetPopularity = function() {
         successCallback: function(d) {
             console.log('Logged in');
 
-            const query = asa.AppleSearchAdsQuery("keywordsRecommendation", 1448103572, {
+            const query = asa.AppleSearchAdsQuery("keywordsRecommendation", 878783582, {
                 body: {
                     storefronts: ["US"]
                 },
