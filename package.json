@@ -1,6 +1,6 @@
 {
-  "name": "applesearchads",
-  "version": "1.0.0",
+  "name": "@andrewstoliarov/apple-search-ads",
+  "version": "1.0.1",
   "description": "Apple search ads api client.",
   "main": "src/appleSearchAds.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/andrewstoliarov/AppleSearchAds.git"
+    "url": "git+https://github.com/andrewstoliarov/apple-search-ads.git"
   },
   "keywords": [
     "apple",

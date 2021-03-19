@@ -58,7 +58,7 @@ Query.prototype.assembleParams = function() {
 
     paramsString = paramsString + `&adamId=${this.adamId}`;
 
-    return paramsString;
+    return encodeURI(paramsString);
 };
 
 module.exports.AppleSearchAdsQuery = AppleSearchAdsQuery;
