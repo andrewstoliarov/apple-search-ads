@@ -3,9 +3,7 @@
   "version": "1.0.1",
   "description": "Apple search ads api client.",
   "main": "src/appleSearchAds.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/andrewstoliarov/apple-search-ads.git"
@@ -25,6 +23,7 @@
   "dependencies": {
     "async": "^3.2.0",
     "request-promise-native": "^1.0.9",
+    "moment-timezone": "^0.5.33",
     "underscore": "^1.12.1",
     "request": "^2.88.2"
   }
