@@ -12,17 +12,19 @@ const testGetPopularity = function() {
         successCallback: function(d) {
             console.log('Logged in');
 
-            const query = asa.AppleSearchAdsQuery(asa.queryTypes.keywordsRecommendation)
-                .keywordText("lightroom")
-                .appId(1448103572)
-                .storefronts(["US"])
-                .build()
+            const query = asa.AppleSearchAdsQuery(asa.queryTypes.reports)
+                .measure(asa.measures.reports.campaigns)
+                .timezone('UTC')
+                .date('2021-02-01', '2021-02-02')
+                .limit(50)
+                .offset(0)
+                .build();
 
             instance.request(query, function(error, result) {
                 if (error) {
                     console.log(error)
                 } else {
-                    console.log(result.data)
+                    console.log(JSON.stringify(result.data))
                 }
             });
         },
