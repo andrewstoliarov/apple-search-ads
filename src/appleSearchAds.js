@@ -185,3 +185,4 @@ module.exports.AppleSearchAds = AppleSearchAds;
 module.exports.AppleSearchAdsQuery = query.AppleSearchAdsQuery;
 module.exports.measures = query.measures;
 module.exports.queryTypes = query.queryTypes;
+module.exports.groupKey = query.groupKey;

@@ -16,6 +16,7 @@ const testGetPopularity = function() {
                 .measure(asa.measures.reports.campaigns)
                 .timezone('UTC')
                 .date('2021-02-01', '2021-02-02')
+                .groupBy(asa.groupKey.countryOrRegion)
                 .limit(50)
                 .offset(0)
                 .build();

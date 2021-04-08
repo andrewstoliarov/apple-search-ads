@@ -9,7 +9,12 @@ const measures = {
     }
 };
 
+const groupKey = {
+    countryOrRegion: 'countryOrRegion'
+};
+
 module.exports.measures = measures;
+module.exports.groupKey = groupKey;
 
 module.exports.queryTypes = {
     keywordsRecommendation: 'keywordsRecommendation',
@@ -67,6 +72,17 @@ Query.prototype.reports = function() {
     this.endpoint = '/cm/api/v1/reports';
     this.config.params = {}
     const timeZone = this.config.timeZone ? this.config.timeZone : 'UTC';
+    const selector = {
+        orderBy: [{
+            field: "localSpend",
+            sortOrder: "DESCENDING"
+        }],
+        pagination: {
+            offset: this.config.offset ? this.config.offset : 0,
+            limit: this.config.limit ? this.config.limit : 50
+        }
+    };
+
     this.config.body = {
         type: this.config.measure,
         filter: {
@@ -75,16 +91,8 @@ Query.prototype.reports = function() {
             timeZone,
             returnRowTotals: true,
             returnGrandTotals: true,
-            selector: {
-                orderBy: [{
-                    field: "localSpend",
-                    sortOrder: "DESCENDING"
-                }],
-                pagination: {
-                    offset: this.config.offset ? this.config.offset : 0,
-                    limit: this.config.limit ? this.config.limit : 50
-                }
-            },
+            groupBy: this.config.groupBy,
+            selector,
             "returnRecordsWithNoMetrics": true
         }
     }
@@ -208,6 +216,22 @@ Query.prototype.timezone = function(timezone) {
     }
 
     this.config.timezone = timezone;
+
+    return this;
+}
+
+Query.prototype.groupBy = function(key) {
+    if (!key) {
+        throw new Error('Group key not exists: ' + key);
+    }
+
+    if(Object.values(groupKey).indexOf(key) === -1) {
+        throw new Error('Is not valid group key: ' + key);
+    }
+    if(!this.config.groupBy) {
+        this.config.groupBy = [];
+    }
+    this.config.groupBy.push(key);
 
     return this;
 }
