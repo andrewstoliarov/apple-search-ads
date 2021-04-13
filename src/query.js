@@ -80,20 +80,20 @@ Query.prototype.reports = function() {
         pagination: {
             offset: this.config.offset ? this.config.offset : 0,
             limit: this.config.limit ? this.config.limit : 50
-        }
+        },
     };
 
     this.config.body = {
         type: this.config.measure,
         filter: {
-            startTime: (this.config.start ? this.config.start.tz(timeZone).format('YYYY-MM-DD') : moment().tz(timeZone).format('YYYY-MM-DD')),
-            endTime: (this.config.end ? this.config.end.tz(timeZone).format('YYYY-MM-DD') : moment().tz(timeZone).format('YYYY-MM-DD')),
+            startTime: (this.config.start ? this.config.start.format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')),
+            endTime: (this.config.end ? this.config.end.format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')),
             timeZone,
             returnRowTotals: true,
             returnGrandTotals: true,
             groupBy: this.config.groupBy,
             selector,
-            "returnRecordsWithNoMetrics": true
+            returnRecordsWithNoMetrics: true
         }
     }
 
