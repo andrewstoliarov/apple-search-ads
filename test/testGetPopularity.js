@@ -2,8 +2,8 @@ var asa = require('./../src/appleSearchAds.js');
 const readline = require('readline');
 var AppleSearchAds = asa.AppleSearchAds;
 
-const password = 'HT[3(KB7K8gMxyBH';
-const username = 'bi.integration@onelightapps.io';
+const password = '';
+const username = '';
 
 const testGetPopularity = async function() {
     const instance = new AppleSearchAds({
