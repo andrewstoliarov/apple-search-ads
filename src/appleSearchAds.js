@@ -236,8 +236,11 @@ AppleSearchAds.prototype.login = async function(username, password) {
                 if (!(cookies && cookies.length)) {
                     throw new Error('There was a problem with loading the login page cookies. Check login credentials.');
                 }
+
+                const des = /(DES.+?)=(.+?;)/.exec(cookies);
                 const myAccount = /myacinfo=.+?;/.exec(cookies);
                 this._cookies.push(myAccount[0]);
+                this._cookies.push(des[0]);
 
                 return this.sign()
             }).then(async (response) => {
@@ -283,7 +286,7 @@ AppleSearchAds.prototype.getHeaders = function() {
         'Cookie': this._cookies,
         'x-xsrf-token-cm': this._xsrfToken,
     };
-}
+};
 
 module.exports.AppleSearchAds = AppleSearchAds;
 module.exports.AppleSearchAdsQuery = query.AppleSearchAdsQuery;

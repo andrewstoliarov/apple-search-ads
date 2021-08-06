@@ -2,8 +2,8 @@ var asa = require('./../src/appleSearchAds.js');
 const readline = require('readline');
 var AppleSearchAds = asa.AppleSearchAds;
 
-const password = '';
 const username = '';
+const password = '';
 
 const testGetPopularity = async function() {
     const instance = new AppleSearchAds({
