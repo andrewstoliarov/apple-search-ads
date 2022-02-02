@@ -35,7 +35,7 @@ var AppleSearchAds = function(options) {
     this._queue.pause();
 };
 
-AppleSearchAds.prototype.tryExternalCookies = async function() {
+AppleSearchAds.prototype.tryExternalCookies = async function(retryCount = 3) {
     if (typeof this.options['cookies'] === undefined) {
         return Promise.resolve(false);
     }
@@ -52,8 +52,13 @@ AppleSearchAds.prototype.tryExternalCookies = async function() {
         return Promise.resolve(true);
     } catch (e) {
         console.log(e)
-        await this.options.errorExternalCookies();
-        return Promise.resolve(false);
+        if(e.toString().includes('Not authorized') && retryCount === 0) {
+            console.log(`Retry tryExternalCookies: ${retryCount}`)
+            return this.tryExternalCookies(--retryCount);
+        } else {
+            await this.options.errorExternalCookies();
+            return Promise.resolve(false);
+        }
     }
 }
 
