@@ -205,7 +205,7 @@ AppleSearchAds.prototype.login = async function(username, password) {
                     'Content-Type': 'application/json',
                     'X-Apple-Widget-Key': this.options.appleWidgetKey
                 },
-                json: {'accountName': username, 'password': password, 'rememberMe': false},
+                json: {'accountName': username, 'password': password, 'rememberMe': true},
                 resolveWithFullResponse: true
             }).catch((res) => {
                 if (res.statusCode === 412) {
