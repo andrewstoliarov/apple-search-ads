@@ -115,9 +115,10 @@ AppleSearchAds.prototype.sign = async function() {
         },
         resolveWithFullResponse: true
     }).then((res) => {
-        console.log(res)
         const cookies = res.headers['set-cookie'];
         const saUser = /sa_user=.+?;/.exec(cookies);
+        const searchadsUserId = /searchads.userId=.+?;/.exec(cookies);
+        this._cookies.push(searchadsUserId[0])
         this._cookies.push(saUser[0])
 
         return request.get({
