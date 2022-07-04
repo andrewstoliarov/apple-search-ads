@@ -202,10 +202,10 @@ AppleSearchAds.prototype.login = async function(username, password) {
         }).then((response) => {
             request.post({
                 url: `${this.options.loginURL}/signin`,
-                headers: {
+                headers: {...{
                     'Content-Type': 'application/json',
                     'X-Apple-Widget-Key': this.options.appleWidgetKey
-                },
+                }, ...this.getHeaders()},
                 json: {'accountName': username, 'password': password, 'rememberMe': true},
                 resolveWithFullResponse: true
             }).catch((res) => {
