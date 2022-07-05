@@ -106,7 +106,7 @@ AppleSearchAds.prototype.catch412Login = function(response) {
         });
 }
 
-AppleSearchAds.prototype.sign = async function() {
+AppleSearchAds.prototype.invokeCmAppUrl = async function() {
     return request.get({
         url: this.options.cmAppUrl,
         followRedirect: false,
@@ -187,11 +187,46 @@ AppleSearchAds.prototype.HSA2Handler = function(res, headers) {
     });
 }
 
-AppleSearchAds.prototype.login = async function(username, password) {
-    if (await this.tryExternalCookies()) {
-        this._queue.resume();
-        return Promise.resolve();
+AppleSearchAds.prototype.check = async function(username, password) {
+    try {
+        const config = {
+            url: `${this.options.loginURL}/signin`,
+            headers: {...{
+                    'Content-Type': 'application/json',
+                    'X-Apple-Widget-Key': this.options.appleWidgetKey
+            }, ...this.getHeaders()},
+            json: {'accountName': username, 'password': password, 'rememberMe': true},
+            resolveWithFullResponse: true
+        };
+        const responseCheck = await request.post(config);
+        const cookies = responseCheck.headers['set-cookie'];
+        if (!(cookies && cookies.length)) {
+            throw new Error('There was a problem with loading the login page cookies.');
+        }
+
+        const myacinfo = /myacinfo=.+?;/.exec(cookies); //extract the itCtx cookie
+        if (myacinfo == null || myacinfo.length == 0) {
+            throw new Error('No myacinfo cookie :( Apple probably changed the login process');
+        }
+
+        const des = /(DES.+?)=(.+?;)/.exec(cookies);
+        this._cookies.push(myacinfo[0]);
+        this._cookies.push(des[0]);
+
+        return Promise.resolve(true);
+    } catch (e) {
+        console.log(e);
+        await this.options.errorExternalCookies();
+        return Promise.resolve(false);
     }
+}
+
+AppleSearchAds.prototype.login = async function(username, password) {
+/*    if (await this.check(username, password)) {
+        this._queue.resume();
+        await this.options.successAuthCookies(this._cookies);
+        return Promise.resolve();
+    }*/
     return new Promise((resolve, reject) => {
         request.get({
             url: `${this.options.signUrl}?appIdKey=${this.options.appleWidgetKey}&rv=1&path=`,
@@ -248,7 +283,7 @@ AppleSearchAds.prototype.login = async function(username, password) {
                 this._cookies.push(myAccount[0]);
                 this._cookies.push(des[0]);
 
-                return this.sign()
+                return this.invokeCmAppUrl()
             }).then(async (response) => {
                 const cookies = response.headers['set-cookie'];
                 if (!(cookies && cookies.length)) {
@@ -286,9 +321,6 @@ AppleSearchAds.prototype.getHeaders = function() {
     return {
         'Content-Type': 'application/json;charset=UTF-8',
         'Accept': 'application/json, text/plain, */*',
-        'Origin': 'https://app.searchads.apple.com',
-        'X-Requested-By': 'app.searchads.apple.com',
-        'Referer': 'https://app.searchads.apple.com/',
         'Cookie': this._cookies,
         'x-xsrf-token-cm': this._xsrfToken,
     };

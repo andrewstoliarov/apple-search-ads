@@ -1,6 +1,6 @@
 {
   "name": "@andrewstoliarov/apple-search-ads",
-  "version": "1.2.8",
+  "version": "1.2.9",
   "description": "Apple search ads api client.",
   "main": "src/appleSearchAds.js",
   "scripts": {},
