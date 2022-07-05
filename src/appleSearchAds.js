@@ -26,7 +26,7 @@ var AppleSearchAds = function(options) {
     _.extend(this.options, options);
 
     // Private
-    this._cookies = [];
+    this._cookies = this.options.cookies;
     this._xsrfToken = this.options.xsrfToken;
     this._queue = async.queue(
         this.executeRequest.bind(this),
@@ -106,7 +106,7 @@ AppleSearchAds.prototype.catch412Login = function(response) {
         });
 }
 
-AppleSearchAds.prototype.invokeCmAppUrl = async function() {
+AppleSearchAds.prototype.invokeCmAppUrl = async function() {console.log(this._cookies)
     return request.get({
         url: this.options.cmAppUrl,
         followRedirect: false,
@@ -116,10 +116,15 @@ AppleSearchAds.prototype.invokeCmAppUrl = async function() {
         resolveWithFullResponse: true
     }).then((res) => {
         const cookies = res.headers['set-cookie'];
+        this._cookies = this._cookies.filter(cookie => !cookie.includes('sa_user') && !cookie.includes('searchads.userId'));
         const saUser = /sa_user=.+?;/.exec(cookies);
         const searchadsUserId = /searchads.userId=.+?;/.exec(cookies);
-        this._cookies.push(searchadsUserId[0])
-        this._cookies.push(saUser[0])
+        if(searchadsUserId && searchadsUserId.length !== 0) {
+            this._cookies.push(searchadsUserId[0])
+        }
+        if(saUser && saUser.length !== 0) {
+            this._cookies.push(saUser[0])
+        }
 
         return request.get({
             url: this.options.startupURL,
@@ -130,7 +135,6 @@ AppleSearchAds.prototype.invokeCmAppUrl = async function() {
             resolveWithFullResponse: true
         })
     }).catch((err) => {
-        console.log(err)
         throw new Error(err);
     })
 }
@@ -215,7 +219,6 @@ AppleSearchAds.prototype.check = async function(username, password) {
 
         return Promise.resolve(true);
     } catch (e) {
-        console.log(e);
         await this.options.errorExternalCookies();
         return Promise.resolve(false);
     }
@@ -230,16 +233,16 @@ AppleSearchAds.prototype.login = async function(username, password) {
     return new Promise((resolve, reject) => {
         request.get({
             url: `${this.options.signUrl}?appIdKey=${this.options.appleWidgetKey}&rv=1&path=`,
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: {...{
+                    'Content-Type': 'application/json',
+            }, ...this.getHeaders()},
             resolveWithFullResponse: true
         }).then((response) => {
             request.post({
                 url: `${this.options.loginURL}/signin`,
                 headers: {...{
-                    'Content-Type': 'application/json',
-                    'X-Apple-Widget-Key': this.options.appleWidgetKey
+                        'Content-Type': 'application/json',
+                        'X-Apple-Widget-Key': this.options.appleWidgetKey
                 }, ...this.getHeaders()},
                 json: {'accountName': username, 'password': password, 'rememberMe': true},
                 resolveWithFullResponse: true
@@ -251,7 +254,6 @@ AppleSearchAds.prototype.login = async function(username, password) {
                 if (res.statusCode !== 409) {
                     return Promise.reject(res);
                 }
-
                 const headers = {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
@@ -271,17 +273,18 @@ AppleSearchAds.prototype.login = async function(username, password) {
 
                 //We need to get the 2fa code
                 return this.TwoFAHandler(res, headers);
-
             }).then((response) => {
                 const cookies = response.headers['set-cookie'];
                 if (!(cookies && cookies.length)) {
                     throw new Error('There was a problem with loading the login page cookies. Check login credentials.');
                 }
-
                 const des = /(DES.+?)=(.+?;)/.exec(cookies);
                 const myAccount = /myacinfo=.+?;/.exec(cookies);
+                this._cookies = this._cookies.filter(cookie => !cookie.includes('myacinfo'))
                 this._cookies.push(myAccount[0]);
-                this._cookies.push(des[0]);
+                if(des && des.length !== 0) {
+                    this._cookies.push(des[0]);
+                }
 
                 return this.invokeCmAppUrl()
             }).then(async (response) => {
