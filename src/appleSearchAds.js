@@ -283,6 +283,7 @@ AppleSearchAds.prototype.login = async function(username, password) {
                 this._cookies = this._cookies.filter(cookie => !cookie.includes('myacinfo'))
                 this._cookies.push(myAccount[0]);
                 if(des && des.length !== 0) {
+                    this._cookies = this._cookies.filter(cookie => !cookie.includes('DES'))
                     this._cookies.push(des[0]);
                 }
 
