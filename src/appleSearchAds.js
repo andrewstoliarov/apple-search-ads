@@ -251,7 +251,7 @@ AppleSearchAds.prototype.login = async function(username, password) {
                     return this.catch412Login(res);
                 }
 
-                if (res.statusCode !== 409) {
+                if (res.statusCode !== 409 || res.statusCode !== 403) {
                     return Promise.reject(res);
                 }
                 const headers = {

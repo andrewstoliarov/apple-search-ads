@@ -24,7 +24,7 @@ const testGetPopularity = async function() {
 
     const query = asa.AppleSearchAdsQuery(asa.queryTypes.keywordsRecommendation)
         .keywordText("lightroom")
-        .appId(1448103572)
+        .appId(1585159557)
         .storefronts(["US"])
         .build()
 
