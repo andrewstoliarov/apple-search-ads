@@ -306,6 +306,9 @@ AppleSearchAds.prototype.login = async function(username, password) {
             }).catch((err) => {
                 reject(err);
             });
+        }).catch(async (err) => {
+            await this.options.errorExternalCookies();
+            return Promise.reject(err);
         })
     })
 };
