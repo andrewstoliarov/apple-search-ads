@@ -1,4 +1,5 @@
 var asa = require('./../src/appleSearchAds.js');
+const readline = require('readline');
 var AppleSearchAds = asa.AppleSearchAds;
 
 const password = '';

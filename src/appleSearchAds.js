@@ -106,15 +106,8 @@ AppleSearchAds.prototype.catch412Login = function(response) {
         });
 }
 
-AppleSearchAds.prototype.invokeCmAppUrl = async function() {console.log(this._cookies)
-    return request.get({
-        url: this.options.cmAppUrl,
-        followRedirect: false,
-        headers: {
-            'Cookie': this._cookies,
-        },
-        resolveWithFullResponse: true
-    }).then((res) => {
+AppleSearchAds.prototype.invokeCmAppUrl = async function() {
+    const processCookies = (res) => {
         const cookies = res.headers['set-cookie'];
         this._cookies = this._cookies.filter(cookie => !cookie.includes('sa_user') && !cookie.includes('searchads.userId'));
         const saUser = /sa_user=.+?;/.exec(cookies);
@@ -134,8 +127,22 @@ AppleSearchAds.prototype.invokeCmAppUrl = async function() {console.log(this._co
             },
             resolveWithFullResponse: true
         })
+    }
+    return request.get({
+        url: this.options.cmAppUrl,
+        followRedirect: false,
+        headers: {
+            'Cookie': this._cookies,
+        },
+        resolveWithFullResponse: true
+    }).then((res) => {
+        return processCookies(res);
     }).catch((err) => {
-        throw new Error(err);
+        if(err.statusCode === 307) {
+            return processCookies(err.response);
+        } else {
+            throw new Error(err);
+        }
     })
 }
 
