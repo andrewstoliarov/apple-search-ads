@@ -5,6 +5,8 @@ var AppleSearchAds = asa.AppleSearchAds;
 const username = '';
 const password = '';
 
+const cookies = ''.split(';').map((cookie) => cookie + ';')
+
 const testGetPopularity = async function() {
     const instance = new AppleSearchAds({
         twoFAHandler: function (successCallback) {
@@ -13,11 +15,9 @@ const testGetPopularity = async function() {
                 successCallback(code);
             });
         },
-        successAuthCookies: async function (cookies, xsrfToken) {
+        successAuthCookies: async function (cookies) {
             console.log(cookies);
-            console.log(xsrfToken);
         },
-        xsrfToken: '',
         cookies: []
     });
     await instance.login(username, password);

@@ -69,7 +69,7 @@ Query.prototype.keywordsRecommendation = function() {
 }
 
 Query.prototype.reports = function() {
-    this.endpoint = '/cm/api/v1/reports';
+    this.endpoint = '/cm/api/v4/reports';
     this.config.params = {}
     const timeZone = this.config.timeZone ? this.config.timeZone : 'UTC';
     const selector = {

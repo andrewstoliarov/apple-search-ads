@@ -12,22 +12,20 @@ var AppleSearchAds = function(options) {
         signUrl: 'https://idmsa.apple.com/IDMSWebAuth/signin',
         loginURL: 'https://idmsa.apple.com/appleauth/auth',
         startupURL: 'https://app.searchads.apple.com/cm/api/v1/startup',
-        cmAppUrl: 'https://app.searchads.apple.com/cm/app?tab=0',
+        cmAppUrl: 'https://app.searchads.apple.com/cm/app',
         checkUrl: 'https://app.searchads.apple.com/cm/api/v1/taxprofile/status',
         appleWidgetKey: 'a01459d797984726ee0914a7097e53fad42b70e1f08d09294d14523a1d4f61e1',
         concurrentRequests: 2,
         cookies: [],
-        xsrfToken: '',
         twoFAHandler: function(successCallback) { console.log('2FA handler'); },
         errorExternalCookies: async function () {console.log('External headers error');},
-        successAuthCookies: async function (cookies, xsrfToken) {}
+        successAuthCookies: async function (cookies) {}
     };
 
     _.extend(this.options, options);
 
     // Private
     this._cookies = this.options.cookies;
-    this._xsrfToken = this.options.xsrfToken;
     this._queue = async.queue(
         this.executeRequest.bind(this),
         this.options.concurrentRequests
@@ -51,7 +49,6 @@ AppleSearchAds.prototype.tryExternalCookies = async function(retryCount = 3) {
         await request.get(config)
         return Promise.resolve(true);
     } catch (e) {
-        console.log(e)
         if(e.toString().includes('Not authorized') && retryCount === 0) {
             console.log(`Retry tryExternalCookies: ${retryCount}`)
             return this.tryExternalCookies(--retryCount);
@@ -109,7 +106,7 @@ AppleSearchAds.prototype.catch412Login = function(response) {
 AppleSearchAds.prototype.invokeCmAppUrl = async function() {
     const processCookies = (res) => {
         const cookies = res.headers['set-cookie'];
-        this._cookies = this._cookies.filter(cookie => !cookie.includes('sa_user') && !cookie.includes('searchads.userId'));
+        this._cookies = this._cookies.filter(cookie => !cookie.includes('sa_user') && !cookie.includes('searchads.userId') && !cookie.includes('XSRF-TOKEN-CM'));
         const saUser = /sa_user=.+?;/.exec(cookies);
         const searchadsUserId = /searchads.userId=.+?;/.exec(cookies);
         if(searchadsUserId && searchadsUserId.length !== 0) {
@@ -119,14 +116,18 @@ AppleSearchAds.prototype.invokeCmAppUrl = async function() {
             this._cookies.push(saUser[0])
         }
 
-        return request.get({
-            url: this.options.startupURL,
-            followRedirect: false,
-            headers: {
-                'Cookie': this._cookies,
-            },
-            resolveWithFullResponse: true
+        const xsrfToken = /XSRF-TOKEN-CM=.+?;/.exec(cookies);
+
+        if(xsrfToken && xsrfToken.length !== 0) {
+            this._cookies.push(xsrfToken[0])
+        }
+        let cookiesString = '';
+        this._cookies.forEach(cookie => {
+            cookiesString = cookiesString + cookie;
         })
+        this._cookies = cookiesString;
+
+        return Promise.resolve();
     }
     return request.get({
         url: this.options.cmAppUrl,
@@ -275,6 +276,7 @@ AppleSearchAds.prototype.login = async function(username, password) {
 
                 const body = res.response.body;
                 if (body && body.authType === 'hsa2') {
+                    console.log('hsa2')
                     return this.HSA2Handler(res, headers);
                 }
 
@@ -295,20 +297,9 @@ AppleSearchAds.prototype.login = async function(username, password) {
                 }
 
                 return this.invokeCmAppUrl()
-            }).then(async (response) => {
-                const cookies = response.headers['set-cookie'];
-                if (!(cookies && cookies.length)) {
-                    throw new Error('There was a problem with loading the login page cookies. Check login credentials.');
-                }
-                const xsrfToken = /XSRF-TOKEN-CM=.+?;/.exec(cookies);
-                this._xsrfToken = xsrfToken[0].replace('XSRF-TOKEN-CM=', '').replace(';', '');
-                let cookiesString = '';
-                this._cookies.forEach(cookie => {
-                    cookiesString = cookiesString + cookie;
-                })
-                this._cookies = cookiesString;
+            }).then(async () => {
                 this._queue.resume();
-                await this.options.successAuthCookies(this._cookies, this._xsrfToken)
+                await this.options.successAuthCookies(this._cookies)
                 resolve();
             }).catch((err) => {
                 reject(err);
@@ -336,7 +327,6 @@ AppleSearchAds.prototype.getHeaders = function() {
         'Content-Type': 'application/json;charset=UTF-8',
         'Accept': 'application/json, text/plain, */*',
         'Cookie': this._cookies,
-        'x-xsrf-token-cm': this._xsrfToken,
     };
 };
 

@@ -2,8 +2,10 @@ var asa = require('./../src/appleSearchAds.js');
 const readline = require('readline');
 var AppleSearchAds = asa.AppleSearchAds;
 
-const password = '';
 const username = '';
+const password = '';
+
+const cookies = ''.split(';').map((cookie) => cookie + ';')
 
 const testGetPopularity = async function() {
     const instance = new AppleSearchAds({
@@ -13,12 +15,11 @@ const testGetPopularity = async function() {
                 successCallback(code);
             });
         },
-        successAuthCookies: async function (cookies, xsrfToken) {
+        successAuthCookies: async function (cookies) {
             console.log(cookies);
-            console.log(xsrfToken);
         },
-        xsrfToken: '',
-        cookies: []
+        cookies
+
     });
     await instance.login(username, password);
 
@@ -42,8 +43,8 @@ const testGetPopularity = async function() {
 
 testGetPopularity()
     .then((res) => {
-        console.log(res)
+        console.log(res);
     })
     .catch((err) => {
-        console.log(err);
+        console.error(err);
     })
