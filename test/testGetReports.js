@@ -1,12 +1,12 @@
 var asa = require('./../src/appleSearchAds.js');
+
 const readline = require('readline');
 var AppleSearchAds = asa.AppleSearchAds;
 
 const username = '';
 const password = '';
 
-const cookies = ''.split(';').map((cookie) => cookie + ';')
-
+const cookies = ''.split(';').map((cookie) => cookie + ';' )
 const testGetPopularity = async function() {
     const instance = new AppleSearchAds({
         twoFAHandler: function (successCallback) {
@@ -26,9 +26,9 @@ const testGetPopularity = async function() {
     const query = asa.AppleSearchAdsQuery(asa.queryTypes.reports)
         .measure(asa.measures.reports.campaigns)
         .timezone('UTC')
-        .date('2021-02-01', '2021-02-02')
+        .date('2024-09-11', '2024-09-11')
         .groupBy(asa.groupKey.countryOrRegion)
-        .limit(50)
+        .limit(70)
         .offset(0)
         .build();
 

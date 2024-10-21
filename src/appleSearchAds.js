@@ -5,15 +5,16 @@ const request = require('request-promise-native');
 const async = require('async');
 const url = require('url');
 const query = require('./query.js');
+const {GSASRPAuthenticator} = require('./GSASRPAuthenticator.js');
 
 var AppleSearchAds = function(options) {
     this.options = {
         baseURL: 'https://app.searchads.apple.com/cm/api/v1/startup',
         signUrl: 'https://idmsa.apple.com/IDMSWebAuth/signin',
-        loginURL: 'https://idmsa.apple.com/appleauth/auth',
+        authURL: 'https://idmsa.apple.com/appleauth/auth',
         startupURL: 'https://app.searchads.apple.com/cm/api/v1/startup',
         cmAppUrl: 'https://app.searchads.apple.com/cm/app',
-        checkUrl: 'https://app.searchads.apple.com/cm/api/v1/taxprofile/status',
+        checkUrl: 'https://app.searchads.apple.com/cm/api/v1/userprefs',
         appleWidgetKey: 'a01459d797984726ee0914a7097e53fad42b70e1f08d09294d14523a1d4f61e1',
         concurrentRequests: 2,
         cookies: [],
@@ -36,8 +37,7 @@ var AppleSearchAds = function(options) {
 AppleSearchAds.prototype.tryExternalCookies = async function(retryCount = 3) {
     if (typeof this.options['cookies'] === undefined) {
         return Promise.resolve(false);
-    }
-    this._cookies = this.options.cookies;
+    }this._cookies = this.options.cookies;
 
     try {
         const config = {
@@ -57,6 +57,18 @@ AppleSearchAds.prototype.tryExternalCookies = async function(retryCount = 3) {
             return Promise.resolve(false);
         }
     }
+}
+
+AppleSearchAds.prototype.signin = function(path, body) {
+    return request.post(`${this.options.authURL}/signin/${path}`, {
+        headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            'Cookie': this.getCookies(),
+            'X-Apple-Widget-Key': this.options.appleWidgetKey,
+        },
+        body: JSON.stringify(body)
+    })
 }
 
 AppleSearchAds.prototype.executeRequest = function(task, callback) {
@@ -154,13 +166,13 @@ AppleSearchAds.prototype.TwoFAHandler = function(res, headers) {
         });
     }).then((code) => {
         return request.post({
-            url: `${this.options.loginURL}/verify/trusteddevice/securitycode`,
+            url: `${this.options.authURL}/verify/trusteddevice/securitycode`,
             headers: headers,
             json: {securityCode: {code: code}},
             resolveWithFullResponse: true
         }).then((res) => {
             return request.get({
-                url: `${this.options.loginURL}/2sv/trust`,
+                url: `${this.options.authURL}/2sv/trust`,
                 headers: headers,
                 resolveWithFullResponse: true
             });
@@ -173,7 +185,7 @@ AppleSearchAds.prototype.TwoFAHandler = function(res, headers) {
 AppleSearchAds.prototype.HSA2Handler = function(res, headers) {
     return new Promise((resolve, reject) => {
         return request.get({
-            url: this.options.loginURL,
+            url: this.options.authURL,
             headers: headers,
             resolveWithFullResponse: true
         }).then((res) => {
@@ -183,13 +195,13 @@ AppleSearchAds.prototype.HSA2Handler = function(res, headers) {
         })
     }).then((code) => {
         return request.post({
-            url: `${this.options.loginURL}/verify/trusteddevice/securitycode`,
+            url: `${this.options.authURL}/verify/trusteddevice/securitycode`,
             headers: headers,
             json: {securityCode: {code: code}},
             resolveWithFullResponse: true
         }).then((res) => {
             return request.get({
-                url: `${this.options.loginURL}/2sv/trust`,
+                url: `${this.options.authURL}/2sv/trust`,
                 headers: headers,
                 resolveWithFullResponse: true
             });
@@ -199,45 +211,15 @@ AppleSearchAds.prototype.HSA2Handler = function(res, headers) {
     });
 }
 
-AppleSearchAds.prototype.check = async function(username, password) {
-    try {
-        const config = {
-            url: `${this.options.loginURL}/signin`,
-            headers: {...{
-                    'Content-Type': 'application/json',
-                    'X-Apple-Widget-Key': this.options.appleWidgetKey
-            }, ...this.getHeaders()},
-            json: {'accountName': username, 'password': password, 'rememberMe': true},
-            resolveWithFullResponse: true
-        };
-        const responseCheck = await request.post(config);
-        const cookies = responseCheck.headers['set-cookie'];
-        if (!(cookies && cookies.length)) {
-            throw new Error('There was a problem with loading the login page cookies.');
-        }
-
-        const myacinfo = /myacinfo=.+?;/.exec(cookies); //extract the itCtx cookie
-        if (myacinfo == null || myacinfo.length == 0) {
-            throw new Error('No myacinfo cookie :( Apple probably changed the login process');
-        }
-
-        const des = /(DES.+?)=(.+?;)/.exec(cookies);
-        this._cookies.push(myacinfo[0]);
-        this._cookies.push(des[0]);
-
-        return Promise.resolve(true);
-    } catch (e) {
-        await this.options.errorExternalCookies();
-        return Promise.resolve(false);
-    }
-}
-
 AppleSearchAds.prototype.login = async function(username, password) {
-/*    if (await this.check(username, password)) {
+    if (await this.tryExternalCookies()) {
         this._queue.resume();
-        await this.options.successAuthCookies(this._cookies);
         return Promise.resolve();
-    }*/
+    }
+
+    const authenticator = new GSASRPAuthenticator(username);
+    let initData = await authenticator.getInit();
+
     return new Promise((resolve, reject) => {
         request.get({
             url: `${this.options.signUrl}?appIdKey=${this.options.appleWidgetKey}&rv=1&path=`,
@@ -246,15 +228,15 @@ AppleSearchAds.prototype.login = async function(username, password) {
             }, ...this.getHeaders()},
             resolveWithFullResponse: true
         }).then((response) => {
-            request.post({
-                url: `${this.options.loginURL}/signin`,
-                headers: {...{
-                        'Content-Type': 'application/json',
-                        'X-Apple-Widget-Key': this.options.appleWidgetKey
-                }, ...this.getHeaders()},
-                json: {'accountName': username, 'password': password, 'rememberMe': true},
-                resolveWithFullResponse: true
-            }).catch((res) => {
+            this.signin('init', initData)
+                .then(async (initResp) => {
+                    let proof = await authenticator.getComplete(password, JSON.parse(initResp));
+                    let completeResp = await this.signin("complete", {
+                        ...proof,
+                        rememberMe: true,
+                        trustTokens: []
+                    })
+                }).catch((res) => {
                 if (res.statusCode === 412) {
                     return this.catch412Login(res);
                 }
