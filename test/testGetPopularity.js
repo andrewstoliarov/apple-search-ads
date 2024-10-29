@@ -18,7 +18,7 @@ const testGetPopularity = async function() {
         successAuthCookies: async function (cookies) {
             console.log(cookies);
         },
-        cookies: []
+        cookies
     });
     await instance.login(username, password);
 

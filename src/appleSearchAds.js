@@ -37,7 +37,8 @@ var AppleSearchAds = function(options) {
 AppleSearchAds.prototype.tryExternalCookies = async function(retryCount = 3) {
     if (typeof this.options['cookies'] === undefined) {
         return Promise.resolve(false);
-    }this._cookies = this.options.cookies;
+    }
+    this._cookies = this.options.cookies;
 
     try {
         const config = {
@@ -53,7 +54,6 @@ AppleSearchAds.prototype.tryExternalCookies = async function(retryCount = 3) {
             console.log(`Retry tryExternalCookies: ${retryCount}`)
             return this.tryExternalCookies(--retryCount);
         } else {
-            await this.options.errorExternalCookies();
             return Promise.resolve(false);
         }
     }
@@ -67,7 +67,8 @@ AppleSearchAds.prototype.signin = function(path, body) {
             'Cookie': this.getCookies(),
             'X-Apple-Widget-Key': this.options.appleWidgetKey,
         },
-        body: JSON.stringify(body)
+        resolveWithFullResponse: true,
+        json: body
     })
 }
 
@@ -230,13 +231,14 @@ AppleSearchAds.prototype.login = async function(username, password) {
         }).then((response) => {
             this.signin('init', initData)
                 .then(async (initResp) => {
-                    let proof = await authenticator.getComplete(password, JSON.parse(initResp));
-                    let completeResp = await this.signin("complete", {
+                    let proof = await authenticator.getComplete(password, initResp.toJSON().body);
+                    let completeResp = await this.signin("complete?isRememberMeEnabled=true", {
                         ...proof,
                         rememberMe: true,
-                        trustTokens: []
                     })
-                }).catch((res) => {
+                    return Promise.resolve(completeResp.toJSON());
+                }).catch((resRaw) => {
+                const res = resRaw.response.toJSON();
                 if (res.statusCode === 412) {
                     return this.catch412Login(res);
                 }
@@ -247,8 +249,8 @@ AppleSearchAds.prototype.login = async function(username, password) {
                 const headers = {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'scnt': res.response.headers['scnt'],
-                    'X-Apple-ID-Session-Id': res.response.headers['x-apple-id-session-id'],
+                    'scnt': res.headers['scnt'],
+                    'X-Apple-ID-Session-Id': res.headers['x-apple-id-session-id'],
                     'X-Apple-Widget-Key': this.options.appleWidgetKey,
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-Apple-Domain-Id': '3',
@@ -256,7 +258,7 @@ AppleSearchAds.prototype.login = async function(username, password) {
                     'Sec-Fetch-Mode': 'cors'
                 };
 
-                const body = res.response.body;
+                const body = res.body;
                 if (body && body.authType === 'hsa2') {
                     console.log('hsa2')
                     return this.HSA2Handler(res, headers);
