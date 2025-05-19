@@ -9,12 +9,12 @@ const {GSASRPAuthenticator} = require('./GSASRPAuthenticator.js');
 
 var AppleSearchAds = function(options) {
     this.options = {
-        baseURL: 'https://app.searchads.apple.com/cm/api/v1/startup',
+        baseURL: 'https://app-ads.apple.com/cm/api/v1/startup',
         signUrl: 'https://idmsa.apple.com/IDMSWebAuth/signin',
         authURL: 'https://idmsa.apple.com/appleauth/auth',
-        startupURL: 'https://app.searchads.apple.com/cm/api/v1/startup',
-        cmAppUrl: 'https://app.searchads.apple.com/cm/app',
-        checkUrl: 'https://app.searchads.apple.com/cm/api/v1/userprefs',
+        startupURL: 'https://app-ads.apple.com/cm/api/v1/startup',
+        cmAppUrl: 'https://app-ads.apple.com/cm/app',
+        checkUrl: 'https://app-ads.apple.com/cm/api/v1/userprefs',
         appleWidgetKey: 'a01459d797984726ee0914a7097e53fad42b70e1f08d09294d14523a1d4f61e1',
         concurrentRequests: 2,
         cookies: [],

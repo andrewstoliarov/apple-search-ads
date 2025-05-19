@@ -41,7 +41,7 @@ AppleSearchAdsQuery.sources = function(config) {
 var Query = function(type) {
     this.config = {};
     this.queryType = type;
-    this.apiURL = ' https://app.searchads.apple.com';
+    this.apiURL = ' https://app-ads.apple.com';
 
     return this;
 };
